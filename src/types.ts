@@ -16,3 +16,14 @@ export interface Specialization {
   value: string;
   label: string;
 }
+
+export interface LoginResponse {
+  access: string;
+  user: User;
+}
+
+export interface RefreshResponse {
+  access: string;
+}
+
+

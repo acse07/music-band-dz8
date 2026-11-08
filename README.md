@@ -37,18 +37,13 @@ npm run build
 
 ## API
 
-[Swagger преподавателя](https://inai-col2.fishrungames.com/api/docs/)
+[Swagger преподавателя](https://inai-col3.fishrungames.com/api/docs/)
 
-Базовый адрес: `https://inai-col2.fishrungames.com/api`.
+Базовый адрес: `https://inai-col3.fishrungames.com/api`.
 
-Используются `POST /register/`, `POST /login/`, `POST /logout/`,
-`GET /profile/`, `PATCH /profile/`, `GET /specializations/`.
+Используются `POST /register/`, `POST /login/`, `POST /logout/`, `POST /token/refresh/`, `GET /profile/`, `PATCH /profile/`, `GET /specializations/`.
 
-Сессия хранится в cookie сервера, запросы используют `credentials: 'include'`.
-Пароль не сохраняется в localStorage. После регистрации нужно войти.
-Если браузер блокирует сторонние cookie, он может не сохранить сессию API.
-В таком случае для работы личного кабинета потребуется разрешить cookie
-сервера `inai-col2.fishrungames.com` в настройках браузера.
+Access-токен хранится только в памяти приложения и передаётся в заголовке `Authorization: Bearer`. Refresh-токен сервер выставляет в HttpOnly cookie; JavaScript не читает и не сохраняет его. Запросы отправляются с `credentials: 'include'`. При ответе 401 приложение один раз запрашивает новый access-токен через `POST /token/refresh/` и повторяет запрос. После обновления страницы access-токен восстанавливается через refresh cookie. Пароль и токены не сохраняются в localStorage.
 
 ## GitHub Pages
 
@@ -56,3 +51,5 @@ Workflow запускается при push в `main` и вручную из в�
 В настройках репозитория: **Settings → Pages → Source → GitHub Actions**.
 Относительный `base` в Vite позволяет загружать ресурсы в подпапке репозитория.
 Переключение страниц сделано через React state, поэтому серверный роутинг не нужен.
+
+

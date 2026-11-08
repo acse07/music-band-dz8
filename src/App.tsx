@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import type { FormEvent } from 'react';
-import { ApiError, request } from './api';
-import type { Profile, Specialization, User } from './types';
+import { ApiError, request, setAccessToken } from './api';
+import type { LoginResponse, Profile, Specialization, User } from './types';
 
 type Page = 'home' | 'login' | 'register' | 'profile';
 
@@ -55,10 +55,11 @@ export default function App() {
 
   function handleSessionError(err: unknown) {
     if (err instanceof ApiError && (err.status === 401 || err.status === 403)) {
+      setAccessToken(null);
       setUser(null);
       setPage('login');
       setEditing(false);
-      setError('Сессия недоступна. Войдите снова. Если ошибка повторяется, разрешите cookie для сервера API в браузере.');
+      setError('Сессия завершилась. Войдите снова.');
     } else {
       setError(getError(err));
     }
@@ -79,17 +80,19 @@ export default function App() {
       const body = { username: username.trim(), password };
 
       if (page === 'register') {
-        await request<User>('/register/', 'POST', body);
-        setPage('login');
+        const data = await request<LoginResponse>('/register/', 'POST', body);
+        setAccessToken(data.access);
+        setUser(data.user);
+        setProfile(data.user.profile);
+        setPage('profile');
         setPassword('');
         setConfirmPassword('');
-        setMessage('Аккаунт создан! Теперь войдите со своим логином и паролем.');
+        setMessage('Аккаунт создан. Добро пожаловать в группу!');
       } else {
-        await request<User>('/login/', 'POST', body);
-        // Проверяем, что браузер сохранил cookie и профиль действительно доступен.
-        const data = await request<User>('/profile/');
-        setUser(data);
-        setProfile(data.profile);
+        const data = await request<LoginResponse>('/login/', 'POST', body);
+        setAccessToken(data.access);
+        setUser(data.user);
+        setProfile(data.user.profile);
         setPage('profile');
         setPassword('');
         setMessage('Вы вошли в систему. Добро пожаловать!');
@@ -165,13 +168,15 @@ export default function App() {
     setLoading(true);
     try {
       await request('/logout/', 'POST');
-      setUser(null);
-      setProfile(emptyProfile);
-      navigate('home');
       setMessage('Вы вышли из системы.');
     } catch (err) {
-      handleSessionError(err);
+      setError(getError(err));
     } finally {
+      setAccessToken(null);
+      setUser(null);
+      setProfile(emptyProfile);
+      setPage('home');
+      setEditing(false);
       setLoading(false);
     }
   }
@@ -285,3 +290,5 @@ export default function App() {
     </>
   );
 }
+
+
